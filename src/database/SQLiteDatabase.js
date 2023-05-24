@@ -1,9 +1,11 @@
 const sqlite3 = require("sqlite3").verbose();
+import IDatabase from "./IDatabase";
 import Document from "../document/Document";
 import Field from "../field/Field";
 
-export default class SQLiteDatabase {
+export default class SQLiteDatabase extends IDatabase {
   constructor(databaseName) {
+    super();
     this.db = new sqlite3.Database(`${databaseName}`, async (err) => {
       if (err) {
         throw new Error("Failed to connect to database");
@@ -136,7 +138,7 @@ export default class SQLiteDatabase {
     });
   }
 
-  getDocument(id) {
+  async getDocument(id) {
     return new Promise((resolve, reject) => {
       this.db.all(
         "SELECT * FROM documents_table INNER JOIN fields_table ON documents_table.doc_id = fields_table.doc_id WHERE documents_table.doc_id = ?",

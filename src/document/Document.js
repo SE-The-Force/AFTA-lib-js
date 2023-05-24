@@ -2,10 +2,16 @@ export default class Document {
   constructor(id) {
     this.id = id;
     this.fields = [];
+    this.fieldMap = new Map();
   }
 
   add(field) {
     this.fields.push(field);
+    this.fieldMap.set(field.key, field);
+  }
+
+  getField(name) {
+    return this.fieldMap.get(name);
   }
 
   equals(other) {

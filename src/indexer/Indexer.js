@@ -12,8 +12,14 @@ export default class Indexer {
     await this.index(document);
   }
 
-  getDocument(id) {
-    return this.documentCache.get(id, () => this.database.getDocument(id));
+  async getDocument(id) {
+    if (id in this.documentCache) {
+    }
+    const res = await this.documentCache.get(
+      id,
+      async () => await this.database.getDocument(id)
+    );
+    return res;
   }
 
   async index(document) {
