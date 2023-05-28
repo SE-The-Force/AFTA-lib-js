@@ -9,5 +9,5 @@ export default class Parser {
 
   isAnalyzed(header) {}
 
-  parse() {}
+  async parse() {}
 }
