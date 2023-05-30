@@ -1,20 +1,5 @@
-import { PythonShell } from 'python-shell';
 
-export default class AnalyzerMock {
-  constructor() {}
-
-  tokens(text) {
-    return text.split(' ');
-  }
-
-  async analyze(text) {
-    const tokens = this.tokens(text);
-    // analyze
-    return tokens; 
-  }
-}
-
-class AmharicNormalizer {
+export default class AmharicNormalizer {
   static normalize(norm) {
     const substitutions = [
       ["ሀ", "ሃ"], ["ሐ", "ሃ"], ["ሓ", "ሃ"], ["ኅ", "ሃ"], ["ኻ", "ሃ"], ["ኃ", "ሃ"], ["ዅ", "ሁ"], ["ሗ", "ኋ"], ["ኁ", "ሁ"], ["ኂ", "ሂ"],
