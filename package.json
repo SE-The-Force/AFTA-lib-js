@@ -28,7 +28,9 @@
     "pdf-lib": "^1.17.1"
   },
   "dependencies": {
+    "onnxjs": "^0.1.8",
     "pdfjs-dist": "^3.6.172",
+    "python-shell": "^5.0.0",
     "sqlite3": "^5.1.6"
   }
 }

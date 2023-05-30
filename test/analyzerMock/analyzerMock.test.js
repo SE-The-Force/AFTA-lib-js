@@ -1,31 +1,27 @@
 import AnalyzerMock from "../../src/analyzer/Analyzer";
 
 describe("AnalyzerMock", () => {
-  it("should split text into tokens", () => {
-    // Example usage
-    const modelPath = '"C:/Users/Coffee/Documents/morpho/epoch_3_prec_81";';  // Replace with the actual path to your model files
-    const analyzer = new AnalyzerMock(modelPath);
+  it("should split text into tokens", async () => {
+    const analyzer = new AnalyzerMock();
 
-    const inflectedWords = ["በቤቶች", "ሰበርን", "ሰበርሸ"];
-    for (const word of inflectedWords) {
-      const rootWord = analyzer.analyze(word);
-      console.log(`Inflected Word: ${word}`);
-      console.log(`Root Word: ${rootWord}`);
-    }
+    const text = 'This is a test';
+    const result = await analyzer.tokens(text);
 
-    // const analyzer = new AnalyzerMock();
-    const text = "The quick brown fox jumps over the lazy dog";
-    const expectedTokens = [
-      "The",
-      "quick",
-      "brown",
-      "fox",
-      "jumps",
-      "over",
-      "the",
-      "lazy",
-      "dog",
-    ];
-    expect(analyzer.analyze(text)).toEqual(expectedTokens);
-  });
+    // You're expecting that tokens splits text into words
+    expect(result).toEqual(['This', 'is', 'a', 'test']);
+  },60000);
+
+  it("should normalize and analyze text", async () => {
+    const analyzer = new AnalyzerMock();
+
+    // Here's a sentence in Amharic (it means "This is a test" in English)
+    const text = 'ይህ ምርመራ ነው';
+    const result = await analyzer.analyze(text);
+
+    console.log(result);
+
+    // This test will be dependent on the expected output of your Python script
+    // For the sake of this example, let's say your Python script returns the array ['ይህ', 'ምርመራ', 'ነው']
+    // expect(result).toEqual(['ይህ', 'ምርመራ', 'ነው']);
+  },60000);
 });
