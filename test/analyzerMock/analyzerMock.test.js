@@ -16,4 +16,6 @@ describe("AnalyzerMock", () => {
     const text = 'ይህ ምርመራ ነው';
     const result = await analyzer.analyze(text);
   },60000);
+
+  
 });
