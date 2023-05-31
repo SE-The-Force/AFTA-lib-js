@@ -4,14 +4,21 @@ import Document from "../document/Document";
 import Field from "../field/Field";
 
 export default class SQLiteDatabase extends IDatabase {
-  constructor(databaseName) {
+constructor(databaseName) {
     super();
-    this.db = new sqlite3.Database(`${databaseName}`, async (err) => {
-      if (err) {
-        throw new Error("Failed to connect to database");
-      } else {
-        await this.createTables();
-      }
+    this.db = new sqlite3.Database(`${databaseName}`);
+  }
+
+  async connect() {
+    return new Promise((resolve, reject) => {
+      this.db.on('open', async (err) => {
+        if (err) {
+          reject(new Error("Failed to connect to database"));
+        } else {
+          await this.createTables();
+          resolve();
+        }
+      });
     });
   }
 
@@ -32,9 +39,11 @@ export default class SQLiteDatabase extends IDatabase {
       this.db.serialize(() => {
         this.db.run(
           `CREATE TABLE IF NOT EXISTS index_table (
-        token TEXT, 
-        doc_id TEXT, 
-        position INTEGER)`,
+            token TEXT, 
+            doc_id TEXT, 
+            position INTEGER,
+            frequency INTEGER,
+            doc_freq INTEGER)`,
           (err) => {
             if (err) reject(err);
           }
@@ -66,12 +75,28 @@ export default class SQLiteDatabase extends IDatabase {
     });
   }
 
-  async insert(token, docId, position) {
+async getTotalDocuments() {
+    return new Promise((resolve, reject) => {
+        this.db.get(
+            "SELECT COUNT(DISTINCT doc_id) as total FROM index_table",
+            [],
+            (err, row) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(row.total);
+                }
+            }
+        );
+    });
+}
+
+  async insert(token, docId, position, frequency) {
     return new Promise((resolve, reject) => {
       const stmt = this.db.prepare(
-        "INSERT INTO index_table (token, doc_id, position) VALUES (?, ?, ?)"
+        "INSERT INTO index_table (token, doc_id, position, frequency) VALUES (?, ?, ?, ?)"
       );
-      stmt.run(token, docId, position, (err) => {
+      stmt.run(token, docId, position, frequency, (err) => {
         if (err) {
           reject(err);
         } else {
@@ -82,21 +107,26 @@ export default class SQLiteDatabase extends IDatabase {
     });
   }
 
-  search(token) {
+
+
+search(token) {
     return new Promise((resolve, reject) => {
-      this.db.all(
-        "SELECT doc_id FROM index_table WHERE token = ?",
-        [token],
-        (err, rows) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(rows.map((row) => row.doc_id));
-          }
-        }
-      );
+        this.db.all(
+            "SELECT doc_id, frequency, doc_freq FROM index_table WHERE token = ?",
+            [token],
+            (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    const ids = rows.map((row) => row.doc_id);
+                    const frequencies = rows.map((row) => row.frequency);
+                    const doc_freqs = rows.map((row) => row.doc_freq);
+                    resolve({ids, frequencies, doc_freqs});
+                }
+            }
+        );
     });
-  }
+}
 
   saveDocument(document) {
     return new Promise((resolve, reject) => {

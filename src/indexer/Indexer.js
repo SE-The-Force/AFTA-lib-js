@@ -22,15 +22,29 @@ export default class Indexer {
     return res;
   }
 
+  async getTotalDocuments(){
+    return await this.database.getTotalDocuments();
+  }
+
   async index(document) {
     for (const field of document.fields) {
       if (field.isIndexible) {
         const tokens = field.value.split(" ");
+        // Count the frequency of each token
+        let tokenFreq = {};
+        for (const token of tokens) {
+          if (!tokenFreq[token]) {
+            tokenFreq[token] = 0;
+          }
+          tokenFreq[token]++;
+        }
+        // Store tokens and their frequencies to the database
         for (const [position, token] of tokens.entries()) {
-          await this.database.insert(token, document.id, position);
+          await this.database.insert(token, document.id, position, tokenFreq[token]);
         }
       }
     }
     await this.database.saveDocument(document);
   }
+
 }

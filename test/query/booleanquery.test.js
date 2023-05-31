@@ -3,56 +3,71 @@ import BooleanQuery from "../../src/query/BooleanQuery";
 import Hits from "../../src/hits/Hits";
 
 describe("BooleanQuery", () => {
-  test("search with AND operator returns intersection of documents", async () => {
-    const doc1 = { id: 1 };
-    const doc2 = { id: 2 };
-    const doc3 = { id: 3 };
-    const query1 = {
-      search: jest.fn(() => new Hits(2, [doc1, doc2])),
-    };
-    const query2 = {
-      search: jest.fn(() => new Hits(2, [doc2, doc3])),
-    };
-    const query = new BooleanQuery([query1, query2], "AND");
-    const indexer = {};
-    expect(await query.search(indexer)).toEqual(new Hits(1, [doc2]));
-    expect(query1.search).toHaveBeenCalledWith(indexer);
-    expect(query2.search).toHaveBeenCalledWith(indexer);
-  });
+  const indexer = {
+    someMethod: jest.fn()
+    // add any other methods or properties needed
+  };
 
-  test("search with OR operator returns union of documents", async () => {
-    const doc1 = { id: 1 };
-    const doc2 = { id: 2 };
-    const doc3 = { id: 3 };
+  it('should return correct documents for AND operator', async () => {
+    const doc1 = { id: 1, score: 1.5 };
+    const doc2 = { id: 2, score: 2.5 };
+    const doc3 = { id: 3, score: 1.0 };
+    
     const query1 = {
-      search: jest.fn(() => new Hits(2, [doc1, doc2])),
+        search: jest.fn(() => Promise.resolve(new Hits(2, [doc1, doc2], {'1' : 1.5, '2' : 2.5})))
     };
     const query2 = {
-      search: jest.fn(() => new Hits(2, [doc2, doc3])),
+        search: jest.fn(() => Promise.resolve(new Hits(2, [doc2, doc3], {'2':2.5, '3':1.0})  ))
     };
-    const query = new BooleanQuery([query1, query2], "OR");
-    const indexer = {};
-    expect(await query.search(indexer)).toEqual(
-      new Hits(3, [doc1, doc2, doc3])
-    );
-    expect(query1.search).toHaveBeenCalledWith(indexer);
-    expect(query2.search).toHaveBeenCalledWith(indexer);
-  });
+    
+    const booleanQuery = new BooleanQuery([query1, query2], "AND");
+    
+    const result = await booleanQuery.search(indexer);
+    
+    expect(result.documents).toEqual([doc2]); // doc2 is in both queries
+    expect(result.scores).toEqual({ '2': 5.0 }); // doc2 score is sum of query1 and query2 scores
+});
 
-  test("search with NOT operator returns difference of documents", async () => {
-    const doc1 = { id: 1 };
-    const doc2 = { id: 2 };
-    const doc3 = { id: 3 };
+it('should return correct documents for OR operator', async () => {
+    const doc1 = { id: 1, score: 1.5 };
+    const doc2 = { id: 2, score: 2.5 };
+    const doc3 = { id: 3, score: 1.0 };
+    
     const query1 = {
-      search: jest.fn(() => new Hits(2, [doc1, doc2])),
+        search: jest.fn(() => Promise.resolve(new Hits(2, [doc1, doc2], {'1' : 1.5, '2' : 2.5})))
     };
     const query2 = {
-      search: jest.fn(() => new Hits(2, [doc2, doc3])),
+        search: jest.fn(() => Promise.resolve(new Hits(2, [doc2, doc3], {'2':2.5, '3':1.0})  ))
     };
-    const query = new BooleanQuery([query1, query2], "NOT");
-    const indexer = {};
-    expect(await query.search(indexer)).toEqual(new Hits(1, [doc1]));
-    expect(query1.search).toHaveBeenCalledWith(indexer);
-    expect(query2.search).toHaveBeenCalledWith(indexer);
-  });
+    
+    const booleanQuery = new BooleanQuery([query1, query2], "OR");
+    
+    const result = await booleanQuery.search(indexer);
+    
+    expect(result.documents).toEqual([doc1, doc2, doc3]); // All documents are returned
+    expect(result.scores).toEqual({ '1': 1.5, '2': 5.0, '3': 1.0 }); // scores are summed where applicable
+});
+
+it('should return correct documents for NOT operator', async () => {
+    const doc1 = { id: 1, score: 1.5 };
+    const doc2 = { id: 2, score: 2.5 };
+    const doc3 = { id: 3, score: 1.0 };
+    
+    const query1 = {
+        search: jest.fn(() => Promise.resolve(new Hits(2, [doc1, doc2], {'1' : 1.5, '2' : 2.5})))
+    };
+    const query2 = {
+        search: jest.fn(() => Promise.resolve(new Hits(2, [doc2, doc3], {'2':2.5, '3':1.0})  ))
+    };
+    
+    const booleanQuery = new BooleanQuery([query1, query2], "NOT");
+    
+    const result = await booleanQuery.search(indexer);
+    
+    expect(result.documents).toEqual([doc1]); // doc1 is only in the first query
+    expect(result.scores).toEqual({ '1': 1.5 }); // doc2 score is not included
+});
+
+
+
 });

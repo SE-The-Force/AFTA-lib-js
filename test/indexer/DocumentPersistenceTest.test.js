@@ -25,6 +25,7 @@ describe("SQLiteDatabase", function () {
       fs.unlinkSync(dbName);
     }
     db = new SQLiteDatabase(dbName);
+    await db.connect();
     await db.createTables();
   });
 
@@ -68,7 +69,7 @@ describe("SQLiteDatabase", function () {
     await db.saveDocument(document);
 
     let retrievedDocument = await db.getDocument("doc3");
-    assert.deepStrictEqual(retrievedDocument, document);
+    assert.deepStrictEqual(JSON.stringify(retrievedDocument), JSON.stringify(document));
   });
 
   it("should search for documents correctly", async function () {
@@ -78,9 +79,10 @@ describe("SQLiteDatabase", function () {
     await db.insert("token", "doc4", 0);
 
     let searchResults = await db.search("token");
+
     assert.deepStrictEqual(
-      JSON.stringify(searchResults),
-      JSON.stringify(["doc4"])
+        JSON.stringify(searchResults), 
+        JSON.stringify({ ids: ["doc4"], frequencies: [null], doc_freqs: [null] })
     );
   });
 

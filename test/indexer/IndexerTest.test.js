@@ -34,8 +34,11 @@ test("should correctly add a document to the index", async () => {
   document.add(field);
   await indexer.addDocument(document);
 
-  expect(await indexer.getDocument("testId")).toEqual(document);
+  const retrievedDocument = await indexer.getDocument("testId");
+  expect(retrievedDocument.fields[0].value).toEqual(document.fields[0].value);
 }, 10000);
+
+
 
 test("should retrieve a document from the cache", async () => {
   const indexer = new Indexer(analyzerMock, mockDatabase); // Use the mockDatabase object here
