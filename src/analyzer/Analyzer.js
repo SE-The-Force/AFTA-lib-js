@@ -1,4 +1,4 @@
-import AmharicNormalizer from "./AmharicNormalizer";
+import AmharicPreprocessor from "./AmharicPreprocessor";
 
 export default class AnalyzerMock {
   constructor() {}
