@@ -1,13 +1,29 @@
 import Query from "./Query";
 import Hits from "../hits/Hits";
 
+
+/**
+ * Class representing a Boolean Query.
+ * @extends Query
+ */
 export default class BooleanQuery extends Query {
+  /**
+   * Create a Boolean Query.
+   * @constructor
+   * @param {Array<Query>} queries - The queries to combine.
+   * @param {string} operator - The operator for combining the queries ('AND', 'OR', or 'NOT').
+   */
   constructor(queries, operator) {
     super();
     this.queries = queries;
     this.operator = operator;
   }
 
+  /**
+   * Search the index using the Boolean query.
+   * @param {Indexer} indexer - The indexer instance.
+   * @returns {Promise<Hits>} A promise that resolves with the search hits.
+   */
   async search(indexer) {
     const hitsList = await Promise.all(this.queries.map((query) => query.search(indexer)));
     const documentLists = hitsList.map((hits) => hits.documents);
@@ -35,6 +51,13 @@ export default class BooleanQuery extends Query {
     return new Hits(documents.length, documents, scores);
   }
 
+  /**
+   * Combine the scores from individual hits lists.
+   * @param {Array<Hits>} hitsList - The list of hits from individual queries.
+   * @param {Array<Document>} documents - The combined list of documents.
+   * @param {string} operator - The operator for combining the queries ('AND', 'OR', or 'NOT').
+   * @returns {Object} The combined scores for the documents.
+   */
   combineScores(hitsList, documents, operator) {
     let combinedScores = {};
 

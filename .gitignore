@@ -23,6 +23,7 @@ lib/
 dist/
 build/
 out/
+lib/
 
 # Testing frameworks
 coverage/

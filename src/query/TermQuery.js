@@ -1,12 +1,25 @@
 import Query from "./Query";
 import Hits from "../hits/Hits";
 
-
+/**
+ * Class representing a Term Query.
+ * @extends Query
+ */
 export default class TermQuery {
+  /**
+   * Create a Term Query.
+   * @constructor
+   * @param {string} term - The term to search for.
+   */
     constructor(term) {
         this.term = term;
     }
 
+  /**
+   * Search the index using the Term query.
+   * @param {Indexer} indexer - The indexer instance.
+   * @returns {Promise<Hits>} A promise that resolves with the search hits.
+   */
     async search(indexer) {
         const {ids, frequencies, doc_freqs} = await indexer.database.search(this.term.text);
         const documents = await Promise.all(

@@ -14,7 +14,6 @@ test("Integration test: parse PDF file, create documents, analyze, index and sea
   const analyzer = new AnalyzerMock("http://172.17.0.2:5000/analyze");
   const database = new SQLiteDatabase("test.db");
   await database.connect();
-  await database.createTables();
   const indexer = new Indexer(analyzer, database);
   const searcher = new IndexSearcher(indexer);
 
