@@ -22,7 +22,7 @@ describe("BooleanQuery", () => {
     
     const booleanQuery = new BooleanQuery([query1, query2], "AND");
     
-    const result = await booleanQuery.search(indexer);
+    const result = await booleanQuery.search(indexer, {});
     
     expect(result.documents).toEqual([doc2]); // doc2 is in both queries
     expect(result.scores).toEqual({ '2': 5.0 }); // doc2 score is sum of query1 and query2 scores
@@ -42,7 +42,7 @@ it('should return correct documents for OR operator', async () => {
     
     const booleanQuery = new BooleanQuery([query1, query2], "OR");
     
-    const result = await booleanQuery.search(indexer);
+    const result = await booleanQuery.search(indexer, {});
     
     expect(result.documents).toEqual([doc1, doc2, doc3]); // All documents are returned
     expect(result.scores).toEqual({ '1': 1.5, '2': 5.0, '3': 1.0 }); // scores are summed where applicable
@@ -62,12 +62,10 @@ it('should return correct documents for NOT operator', async () => {
     
     const booleanQuery = new BooleanQuery([query1, query2], "NOT");
     
-    const result = await booleanQuery.search(indexer);
+    const result = await booleanQuery.search(indexer, {});
     
     expect(result.documents).toEqual([doc1]); // doc1 is only in the first query
     expect(result.scores).toEqual({ '1': 1.5 }); // doc2 score is not included
 });
-
-
 
 });

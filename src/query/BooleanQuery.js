@@ -24,8 +24,8 @@ export default class BooleanQuery extends Query {
    * @param {Indexer} indexer - The indexer instance.
    * @returns {Promise<Hits>} A promise that resolves with the search hits.
    */
-  async search(indexer) {
-    const hitsList = await Promise.all(this.queries.map((query) => query.search(indexer)));
+  async search(indexer, analyzer) {
+    const hitsList = await Promise.all(this.queries.map((query) => query.search(indexer, analyzer)));
     const documentLists = hitsList.map((hits) => hits.documents);
     let documents;
 

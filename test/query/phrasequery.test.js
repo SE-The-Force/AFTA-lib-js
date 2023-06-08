@@ -25,6 +25,9 @@ describe("PhraseQuery", () => {
       },
       getDocument: jest.fn((id) => (id === 1 ? doc1 : doc2)),
     };
-    expect(await query.search(indexer)).toEqual(new Hits(1, [doc1]));
+    const analyzer = {
+      analyze:  jest.fn(() => ['']),
+    };
+    expect(await query.search(indexer, analyzer)).toEqual(new Hits(1, [doc1]));
   });
 });

@@ -20,8 +20,10 @@ export default class TermQuery {
    * @param {Indexer} indexer - The indexer instance.
    * @returns {Promise<Hits>} A promise that resolves with the search hits.
    */
-    async search(indexer) {
-        const {ids, frequencies, doc_freqs} = await indexer.database.search(this.term.text);
+    async search(indexer, analyzer) {
+        const analyzedTerms = await analyzer.analyze(this.term.text);
+        const term = analyzedTerms && analyzedTerms[0];
+        const {ids, frequencies, doc_freqs} = await indexer.database.search(term);
         const documents = await Promise.all(
             ids.map((id) => indexer.getDocument(id))
         );

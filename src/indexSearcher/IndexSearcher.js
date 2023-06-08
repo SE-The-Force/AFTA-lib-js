@@ -1,3 +1,4 @@
+import Analyzer from "../analyzer/Analyzer";
 import Cache from "../cache/Cache";
 
 /**
@@ -9,9 +10,11 @@ export default class IndexSearcher {
    * Create an Index Searcher.
    * @constructor
    * @param {Indexer} indexer - The Indexer instance.
-   */
-  constructor(indexer) {
+   * @param {Analyzer} Analyzer - The Analyzer instance.
+  */
+  constructor(indexer, analyzer) {
     this.indexer = indexer;
+    this.analyzer = analyzer;
     this.searchCache = new Cache(1000);
   }
 
@@ -23,7 +26,7 @@ export default class IndexSearcher {
   async search(query) {
     return this.searchCache.get(
       query,
-      async () => await query.search(this.indexer)
+      async () => await query.search(this.indexer, this.analyzer)
     );
   }
 }

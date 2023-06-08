@@ -59,7 +59,7 @@ export default class AmharicPreprocessor {
       return this.removeExtraSpaces(cleanedText);
     }
 
-  /**
+    /**
    * Normalize the text by applying character substitutions.
    * @param {string} norm - The normalized text.
    * @returns {string} The text with character substitutions applied.

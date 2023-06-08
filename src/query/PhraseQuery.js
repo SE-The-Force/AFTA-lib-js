@@ -23,8 +23,8 @@ export default class PhraseQuery extends Query {
    * @param {Indexer} indexer - The indexer instance.
    * @returns {Promise<Hits>} A promise that resolves with the search hits.
    */
-  async search(indexer) {
-    const tokens = this.phrase.split(" ");
+  async search(indexer, analyzer) {
+    const tokens = analyzer.analyze(this.phrase);
     const hits = [];
     const documentIds = await indexer.database.search(this.phrase);
     const documents = await Promise.all(

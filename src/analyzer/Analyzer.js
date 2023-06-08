@@ -55,7 +55,7 @@ export default class Analyzer {
           'Content-Type': 'application/json',
         },
       });
-
+      
       return response.data.rootWords;
     } catch (error) {
       throw error;

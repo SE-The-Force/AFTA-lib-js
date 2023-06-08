@@ -56,7 +56,12 @@ export default class Indexer {
   async index(document) {
     for (const field of document.fields) {
       if (field.isIndexible) {
-        const tokens = field.value.split(" ");
+        let tokens = [];
+        if(field.isAnalyzed){
+          tokens = await this.analyzer.analyze(field.value);
+        }else{
+          tokens = field.value.split(" ");
+        }
         // Count the frequency of each token
         let tokenFreq = {};
         for (const token of tokens) {

@@ -21,7 +21,11 @@ describe("TermQuery", () => {
             getTotalDocuments: jest.fn(() => 2),
         };
 
-        const hits = await query.search(indexer);
+            const analyzer = {
+      analyze:  jest.fn(() => ['text']),
+    };
+
+        const hits = await query.search(indexer, analyzer);
 
         expect(hits.totalHits).toBe(2);
         expect(hits.documents).toEqual([doc1, doc2]); // It's important to note the order of the documents
