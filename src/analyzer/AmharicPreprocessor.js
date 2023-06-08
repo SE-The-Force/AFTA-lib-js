@@ -1,13 +1,11 @@
 
 export default class AmharicPreprocessor {
   static removePunctuation(text) {
-    const punctuations = [`!`, `@`, `#`, `$`, `%`, `^`, `&`, `*`, `(`, `)`, `[`, `]`, `{`, `}`,
-     `;`, `:`, `.`, `,`, `<`, `>`, `?`, `/`, `|`, `~`, `-`, `=`, `+`, `«`, `»`, `“`, `”`, `›`,
-      `’`, `‘`, `'`, `"`, `፡`, `።`, `፤`, `፥`, `፦`, `፧`, `፨`, `…`];
+    const punctuations = ['!', '@', '#', '\\$', '%', '\\^', '&', '\\*', '\\(', '\\)', '\\[', '\\]', '\\{', '\\}', ';', ':', '\\.', ',', '<', '>', '\\?', '/', '\\|', '~', '=', '\\+', '«', '»', '“', '”', '›', '’', '‘', "'", '\\"', '፡', '።', '፤', '፥', '፦', '፧', '፨', '…','፣', '-'];
 
-    // g flag is used to replace all occurrences of the punctuation in the text
     const cleanedText = text.replace(new RegExp(`[${punctuations.join("")}]`, "g"), ""); 
-    return this.removeExtraSpaces(cleanedText);
+    const result = this.removeExtraSpaces(cleanedText);
+    return result;
   }
 
   static removeNonAmharicChars(text) {
@@ -16,14 +14,14 @@ export default class AmharicPreprocessor {
   }
 
   static removeExtraSpaces(text) {
-    const cleanedText = text.replace(/\s+/g, " ");
+    const cleanedText = text.replace(/\s+/g, " ").trim();
     return cleanedText;
   }
 
     static removeStopWords(text) {
       const stopwords = [
         "ህ-ን", "እንደ", "የ", "አል", "ው", "ኡ", "በ", "ተ", "ለ", "ን", "ኦች", "ኧ", "ና", "ከ", "እን", "አንድ", "አይ", "አዎ",
-         "አዲስ", "አቸው", "ት", "መ", "አ", "አት", "ዎች", "ም", "አስ", "ኡት", "ላ", "ይ", "ማ", "ያ", "አ", "ቶ", "እንዲ", 
+          "አቸው", "ት", "መ", "አ", "አት", "ዎች", "ም", "አስ", "ኡት", "ላ", "ይ", "ማ", "ያ", "አ", "ቶ", "እንዲ", 
          "የሚ", "ኦ", "ይ", "እየ", "ሲ", "ብ", "ወደ", "ሌላ", "ጋር", "ኡ", "እዚህ", "አንድ", "ውስጥ", "እንድ", "እ-ል", "ን-ብ-ር", 
          "በኩል", "ል", "እስከ", "እና", "ድ-ግ-ም", "መካከል", "ኧት", "ሊ", "አይ", "ምክንያት", "ይህ", "ኧች", "ኢት", "ዋና", "አን", 
          "እየ", "ስለ", "ች", "ስ", "ቢ", "ብቻ", "በየ", "ባለ", "ጋራ", "ኋላ", "እነ", "አም", "ሽ", "አዊ", "ዋ", "ያለ", "ግን", "ምን", 

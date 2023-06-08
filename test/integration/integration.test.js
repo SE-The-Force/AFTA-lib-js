@@ -11,8 +11,10 @@ import TermQuery from "../../src/query/TermQuery";
 
 test("Integration test: parse PDF file, create documents, analyze, index and search", async () => {
   // Set up the components of your system
-  const analyzer = new AnalyzerMock();
+  const analyzer = new AnalyzerMock("http://172.17.0.2:5000/analyze");
   const database = new SQLiteDatabase("test.db");
+  await database.connect();
+  await database.createTables();
   const indexer = new Indexer(analyzer, database);
   const searcher = new IndexSearcher(indexer);
 
@@ -55,8 +57,8 @@ test("Integration test: parse PDF file, create documents, analyze, index and sea
       )
     );
     await indexer.addDocument(document);
-  }
 
+  }
   // Search the index for a specific term
   const query = new TermQuery(new Term("content", "Test"));
   const hits = await searcher.search(query);
@@ -66,4 +68,4 @@ test("Integration test: parse PDF file, create documents, analyze, index and sea
   for (const document of hits.documents) {
     expect(document.getField("content").value).toContain("Test");
   }
-});
+},10000);
