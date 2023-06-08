@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "afta-lib-js": "^1.0.0",
-  "type": "module",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "babel src --out-dir lib"
   },
   "repository": {
     "type": "git",
@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/SE-The-Force/AFTA-lib-js#readme",
   "devDependencies": {
+    "@babel/cli": "^7.21.5",
     "@babel/core": "^7.21.8",
     "@babel/preset-env": "^7.21.5",
     "@pdf-lib/fontkit": "^1.1.1",
@@ -28,7 +29,7 @@
     "pdf-lib": "^1.17.1"
   },
   "dependencies": {
-    "onnxjs": "^0.1.8",
+    "axios": "^1.4.0",
     "pdfjs-dist": "^3.6.172",
     "python-shell": "^5.0.0",
     "sqlite3": "^5.1.6"

@@ -1,4 +1,4 @@
-import AmharicNormalizer from '../../src/analyzer/AmharicPreprocessor';  // import class
+import AmharicPreprocessor from '../../src/analyzer/AmharicPreprocessor';  // import class
 
 describe('AmharicPreprocessor', () => {
   const normalizationTestcases = [
@@ -23,7 +23,7 @@ describe('AmharicPreprocessor', () => {
     {input: 'እንደ እንደ', expected: ''},
     {input: 'አዲስ አበባ እንደ', expected: 'አዲስ አበባ'},
     {input: 'አዲስ አበባ', expected: 'አዲስ አበባ'},
-    {input: 'አዲስ አበባ እና አዲስ አበባ', expected: 'አዲስ አበባ ተማ እና አዲስ አበባ ተማ'}
+    {input: 'አዲስ አበባ ተማ እና አዲስ አበባ ተማ', expected: 'አዲስ አበባ ተማ አዲስ አበባ ተማ'}
   ];
   const extraSpaceRemovalTestcases = [
       {input: 'አዲስ  አበባ', expected: 'አዲስ አበባ'},
@@ -38,41 +38,41 @@ describe('AmharicPreprocessor', () => {
     {input: 'አዲስ and አበባ 123', expected: 'አዲስ አበባ'},
     {input: 'አዲስ 1 አበባ 2', expected: 'አዲስ አበባ'},
     {input: 'አዲስ 123 አበባ', expected: 'አዲስ አበባ'},
-    {input: 'hello አዲስ 123 world', expected: 'አዲስ አበባ'},
+    {input: 'hello አዲስ 123 world', expected: 'አዲስ'},
     {input: 'አዲስ 123 አበባ hello world', expected: 'አዲስ አበባ'}
   ];
 
   normalizationTestcases.forEach(({ input, expected }) => {
     it(`should normalize "${input}" to "${expected}"`, () => {
-      const result = AmharicNormalizer.normalize(input);
+      const result = AmharicPreprocessor.normalize(input);
       expect(result).toBe(expected);
     });
   });
 
   punctuationRemovalTestcases.forEach(({ input, expected }) => {
     it(`should remove punctuation from "${input}" to "${expected}"`, () => {
-      const result = AmharicNormalizer.removePunctuation(input);
+      const result = AmharicPreprocessor.removePunctuation(input);
       expect(result).toBe(expected);
     });
   });
 
   stopwordRemovalTestcases.forEach(({ input, expected }) => {
     it(`should remove stopwords from "${input}" to "${expected}"`, () => {
-      const result = AmharicNormalizer.removeStopwords(input);
+      const result = AmharicPreprocessor.removeStopWords(input);
       expect(result).toBe(expected);
     });
   });
 
   extraSpaceRemovalTestcases.forEach(({ input, expected }) => {
     it(`should remove extra spaces from "${input}" to "${expected}"`, () => {
-      const result = AmharicNormalizer.removeExtraSpaces(input);
+      const result = AmharicPreprocessor.removeExtraSpaces(input);
       expect(result).toBe(expected);
     });
   });    
 
   mixedCharsTestCases.forEach(({ input, expected }) => {
     it(`should remove mixed chars from "${input}" to "${expected}"`, () => {
-      const result = AmharicNormalizer.removeMixedChars(input);
+      const result = AmharicPreprocessor.removeNonAmharicChars(input);
       expect(result).toBe(expected);
     });
   });

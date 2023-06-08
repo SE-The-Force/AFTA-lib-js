@@ -1,20 +1,13 @@
-import AnalyzerMock from "../../src/analyzer/Analyzer";
+import Analyzer from "../../src/analyzer/Analyzer";
 
 describe("AnalyzerMock", () => {
-  it("should split text into tokens", async () => {
-    const analyzer = new AnalyzerMock();
-
-    const text = 'This is a test';
-    const result = await analyzer.tokens(text);
-
-    expect(result).toEqual(['This', 'is', 'a', 'test']);
-  },60000);
 
   it("should normalize and analyze text", async () => {
-    const analyzer = new AnalyzerMock();
+    const analyzer = new Analyzer("http://172.17.0.2:5000/analyze");
 
     const text = 'ይህ ምርመራ ነው';
     const result = await analyzer.analyze(text);
+    expect(result).toEqual(['ምርመራ', 'ነው'])
   },60000);
 
   
