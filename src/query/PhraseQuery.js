@@ -9,12 +9,10 @@ export default class PhraseQuery extends Query {
   /**
    * Create a Phrase Query.
    * @constructor
-   * @param {string} field - The field to search in.
    * @param {string} phrase - The phrase to search for.
    */
-  constructor(field, phrase) {
+  constructor(phrase) {
     super();
-    this.field = field;
     this.phrase = phrase;
   }
 
@@ -25,44 +23,59 @@ export default class PhraseQuery extends Query {
    */
   async search(indexer, analyzer) {
     const tokens = await analyzer.analyze(this.phrase);
+    if(tokens.length === 0){
+      return new Hits(0,[]);
+    }
     const hits = [];
     const documentIds = [];
-    for(let token of tokens){
-      const {ids} = await indexer.database.search(token);
-      documentIds.push(...ids);
-    }
-    const documents = await Promise.all(
-      documentIds.map((id) => indexer.getDocument(id))
-    );
+    const positionIndices = [];
 
-    for (const doc of documents) {
-      const positions = Object.entries(doc.fields)
-        .filter(([key]) => key === this.field)
-        .flatMap(([, value]) =>
-          value.split(" ").map((value, index) => [index, value])
-        )
-        .reduce((acc, [index, value]) => {
-          acc[value] = acc[value] || [];
-          acc[value].push(index);
-          return acc;
-        }, {});
+    let docIdsSet = undefined;
+    const docId_token_position = {}
+    for(let token of tokens){
+      const {ids, positions} = await indexer.database.search(token);
+      const set1 = new Set(ids);
+      if (!docIdsSet){
+        docIdsSet = set1;
+      }else{
+        docIdsSet = new Set([...docIdsSet].filter(i => set1.has(i)));
+      }
+      for(let i=0;i<ids.length;i++){
+        const docId = ids[i];
+        if(!(docId in docId_token_position)){
+          docId_token_position[docId] = {}
+        }
+        if(!(token in docId_token_position[docId])){
+          docId_token_position[docId][token] = new Set();
+        }
+        docId_token_position[docId][token].add(positions[i])
+      }
+    }
+
+    let ts = tokens.slice(1);
+    for(const docId of docIdsSet){
+      let first = docId_token_position[docId][tokens[0]]
       let found = true;
-      for (let i = 1; i < tokens.length; i++) {
-        const prevToken = tokens[i - 1];
-        const token = tokens[i];
-        if (
-          !positions.hasOwnProperty(prevToken) ||
-          !positions.hasOwnProperty(token) ||
-          !positions[prevToken].some((p) => positions[token].includes(p + 1))
-        ) {
-          found = false;
+      for(const startPoint of first){
+        let cur = startPoint;
+        found = true;
+        for(let token of ts){
+          if(docId_token_position[docId][token].has(cur + 1)){
+            cur = cur + 1
+          }else{
+            found = false;
+            break;
+          }
+        }
+        if(found){
           break;
         }
       }
-      if (found) {
-        hits.push(doc);
+      if(found){
+        hits.push(await indexer.getDocument(docId));
       }
     }
+
     return new Hits(hits.length, hits);
   }
 }

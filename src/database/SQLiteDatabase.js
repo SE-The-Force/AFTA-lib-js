@@ -43,8 +43,7 @@ constructor(databaseName) {
             token TEXT, 
             doc_id TEXT, 
             position INTEGER,
-            frequency INTEGER,
-            doc_freq INTEGER)`,
+            frequency INTEGER)`,
           (err) => {
             if (err) reject(err);
           }
@@ -76,21 +75,21 @@ constructor(databaseName) {
     });
   }
 
-async getTotalDocuments() {
-    return new Promise((resolve, reject) => {
-        this.db.get(
-            "SELECT COUNT(DISTINCT doc_id) as total FROM index_table",
-            [],
-            (err, row) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(row.total);
-                }
-            }
-        );
-    });
-}
+  async getTotalDocuments() {
+      return new Promise((resolve, reject) => {
+          this.db.get(
+              "SELECT COUNT(DISTINCT doc_id) as total FROM index_table",
+              [],
+              (err, row) => {
+                  if (err) {
+                      reject(err);
+                  } else {
+                      resolve(row.total);
+                  }
+              }
+          );
+      });
+  }
 
   async insert(token, docId, position, frequency) {
     return new Promise((resolve, reject) => {
@@ -110,24 +109,24 @@ async getTotalDocuments() {
 
 
 
-search(token) {
-    return new Promise((resolve, reject) => {
-        this.db.all(
-            "SELECT doc_id, frequency, doc_freq FROM index_table WHERE token = ?",
-            [token],
-            (err, rows) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    const ids = rows.map((row) => row.doc_id);
-                    const frequencies = rows.map((row) => row.frequency);
-                    const doc_freqs = rows.map((row) => row.doc_freq);
-                    resolve({ids, frequencies, doc_freqs});
-                }
-            }
-        );
-    });
-}
+  search(token) {
+      return new Promise((resolve, reject) => {
+          this.db.all(
+              "SELECT doc_id, frequency, position FROM index_table WHERE token = ?",
+              [token],
+              (err, rows) => {
+                  if (err) {
+                      reject(err);
+                  } else {
+                      const ids = rows.map((row) => row.doc_id);
+                      const frequencies = rows.map((row) => row.frequency);
+                      const positions = rows.map((row) => row.position);
+                      resolve({ids, frequencies, positions});
+                  }
+              }
+          );
+      });
+  }
 
   saveDocument(document) {
     return new Promise((resolve, reject) => {
