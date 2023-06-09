@@ -126,7 +126,7 @@ constructor(databaseName) {
 
 
 
-  search(token) {
+  async search(token) {
       return new Promise((resolve, reject) => {
           this.db.all(
               "SELECT doc_id, frequency, position FROM index_table WHERE token = ?",
@@ -145,7 +145,32 @@ constructor(databaseName) {
       });
   }
 
-  saveDocument(document) {
+  async getDocumentsWithoutToken(token) {
+      return new Promise((resolve, reject) => {
+          this.db.all(
+              `SELECT DISTINCT documents_table.* 
+              FROM documents_table 
+              LEFT JOIN index_table ON documents_table.doc_id = index_table.doc_id 
+              WHERE index_table.token != ? OR index_table.token IS NULL`,
+              [token],
+              async (err, rows) => {
+                  if (err) {
+                      reject(err);
+                  } else {
+                      let documents = [];
+                      for (let row of rows) {
+                          let document = await this.getDocument(row.doc_id);
+                          documents.push(document);
+                      }
+                      resolve(documents);
+                  }
+              }
+          );
+      });
+  }
+
+
+  async saveDocument(document) {
     return new Promise((resolve, reject) => {
       this.db.serialize(() => {
         const stmt1 = this.db.prepare(
@@ -209,6 +234,42 @@ constructor(databaseName) {
             resolve(document);
           } else {
             resolve(null);
+          }
+        }
+      );
+    });
+  }
+
+  async getDocuments(ids) {
+    return new Promise((resolve, reject) => {
+      const idString = ids.map(id => `'${id}'`).join(",");
+      this.db.all(
+        `SELECT * FROM documents_table 
+        INNER JOIN fields_table ON documents_table.doc_id = fields_table.doc_id 
+        WHERE documents_table.doc_id IN (${idString})`,
+        [],
+        (err, rows) => {
+          if (err) {
+            reject(err);
+          } else {
+            // Group rows by document id
+            const docs = {};
+            for (let row of rows) {
+              if (!docs[row.doc_id]) {
+                docs[row.doc_id] = new Document(row.doc_id);
+              }
+              let field = new Field(
+                row.key,
+                row.value,
+                row.analyzed_value,
+                !!row.is_analyzed,
+                !!row.is_indexible,
+                !!row.is_stored
+              );
+              docs[row.doc_id].add(field);
+            }
+            // Convert docs object to array
+            resolve(Object.values(docs));
           }
         }
       );
