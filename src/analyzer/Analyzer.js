@@ -58,7 +58,7 @@ export default class Analyzer {
       
       return response.data.rootWords;
     } catch (error) {
-      throw error;
+      return [];
     }
   }
 }

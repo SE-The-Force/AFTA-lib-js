@@ -24,12 +24,17 @@ export default class PhraseQuery extends Query {
    * @returns {Promise<Hits>} A promise that resolves with the search hits.
    */
   async search(indexer, analyzer) {
-    const tokens = analyzer.analyze(this.phrase);
+    const tokens = await analyzer.analyze(this.phrase);
     const hits = [];
-    const documentIds = await indexer.database.search(this.phrase);
+    const documentIds = [];
+    for(let token of tokens){
+      const {ids} = await indexer.database.search(token);
+      documentIds.push(...ids);
+    }
     const documents = await Promise.all(
       documentIds.map((id) => indexer.getDocument(id))
     );
+
     for (const doc of documents) {
       const positions = Object.entries(doc.fields)
         .filter(([key]) => key === this.field)

@@ -8,6 +8,7 @@ import Hits from "../../src/hits/Hits";
 import PdfParser from "../../src/parser/pdf_parser/PdfParser";
 import Term from "../../src/term/Term";
 import TermQuery from "../../src/query/TermQuery";
+import { PhraseQuery } from "../../src";
 
 test("Integration test: parse PDF file, create documents, analyze, index and search", async () => {
   // Set up the components of your system
@@ -58,8 +59,9 @@ test("Integration test: parse PDF file, create documents, analyze, index and sea
 
   }
   // Search the index for a specific term
-  const query = new TermQuery(new Term("content", "አማርኛ"));
-  const hits = await searcher.search(query);
+  const tq = new TermQuery(new Term("content", "አማርኛ"));
+  // const hits = await searcher.search(query);
+  const query = new PhraseQuery();
 
   // Verify that the search results are correct
   expect(hits.totalHits).toBeGreaterThan(0);

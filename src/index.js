@@ -8,3 +8,5 @@ export { default as Hits } from './hits/Hits.js';
 export { default as PdfParser } from './parser/pdf_parser/PdfParser.js';
 export { default as Term } from './term/Term.js';
 export { default as TermQuery } from './query/TermQuery.js';
+export { default as PhraseQuery } from './query/PhraseQuery.js';
+export { default as BooleanQuery } from './query/BooleanQuery.js';

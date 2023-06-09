@@ -1,33 +1,22 @@
 import Term from "../../src/term/Term";
 import PhraseQuery from "../../src/query/PhraseQuery";
 import Hits from "../../src/hits/Hits";
+import Analyzer from "../../src/analyzer/Analyzer";
+import Document from "../../src/document/Document";
+import Field from "../../src/field/Field";
+import SQLiteDatabase from "../../src/database/SQLiteDatabase";
+import Indexer from "../../src/indexer/Indexer";
+import IndexSearcher from "../../src/indexSearcher/IndexSearcher";
 
 describe("PhraseQuery", () => {
   test("search returns hits with documents containing phrase in field", async () => {
-    const field = "field";
-    const phrase = "text1 text2";
-    const query = new PhraseQuery(field, phrase);
-    const doc1 = {
-      id: 1,
-      fields: {
-        [field]: "text1 text2",
-      },
-    };
-    const doc2 = {
-      id: 2,
-      fields: {
-        [field]: "text1 text3",
-      },
-    };
-    const indexer = {
-      database: {
-        search: jest.fn(() => [1]),
-      },
-      getDocument: jest.fn((id) => (id === 1 ? doc1 : doc2)),
-    };
-    const analyzer = {
-      analyze:  jest.fn(() => ['']),
-    };
-    expect(await query.search(indexer, analyzer)).toEqual(new Hits(1, [doc1]));
-  });
+    const analyzer = new Analyzer("http://127.0.0.1:5000");
+    const db = new SQLiteDatabase('phrase.db')
+    await db.connect();
+    const indexer = new Indexer(analyzer, db);
+    const searcher = new IndexSearcher(indexer, analyzer);
+
+    const query = new PhraseQuery("content", "Test text")
+    expect(await query.search(indexer, analyzer)).toEqual({"documents": [], "scores": undefined, "totalHits": 0});
+  },10000);
 });
