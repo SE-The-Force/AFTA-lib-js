@@ -1,4 +1,4 @@
-import AnalyzerMock from "../../src/analyzer/Analyzer";
+import Analyzer from "../../src/analyzer/Analyzer";
 import Document from "../../src/document/Document";
 import Field from "../../src/field/Field";
 import SQLiteDatabase from "../../src/database/SQLiteDatabase";
@@ -8,20 +8,20 @@ import Hits from "../../src/hits/Hits";
 import PdfParser from "../../src/parser/pdf_parser/PdfParser";
 import Term from "../../src/term/Term";
 import TermQuery from "../../src/query/TermQuery";
+import { PhraseQuery } from "../../src";
 
 test("Integration test: parse PDF file, create documents, analyze, index and search", async () => {
   // Set up the components of your system
-  const analyzer = new AnalyzerMock("http://172.17.0.2:5000/analyze");
+  const analyzer = new Analyzer("http://172.17.0.2:5000/analyze");
   const database = new SQLiteDatabase("test.db");
   await database.connect();
-  await database.createTables();
   const indexer = new Indexer(analyzer, database);
-  const searcher = new IndexSearcher(indexer);
+  const searcher = new IndexSearcher(indexer, analyzer);
 
   // Parse a PDF file using the PdfParser class
-  const pdfParser = new PdfParser("./test/pdf_parser/file.pdf");
+  const pdfParser = new PdfParser("./test/pdf_parser/file2.pdf");
   const parsedData = await pdfParser.parse();
-
+  
   // Create a document for each page of the PDF file
   for (const [bookTitle, pageNumber, content] of parsedData.slice(1)) {
     const document = new Document(`${bookTitle}-${pageNumber}`);
@@ -45,7 +45,6 @@ test("Integration test: parse PDF file, create documents, analyze, index and sea
         pdfParser.isIndexable("Page Number")
       )
     );
-
     document.add(
       new Field(
         "content",
@@ -60,12 +59,13 @@ test("Integration test: parse PDF file, create documents, analyze, index and sea
 
   }
   // Search the index for a specific term
-  const query = new TermQuery(new Term("content", "Test"));
-  const hits = await searcher.search(query);
+  const tq = new TermQuery(new Term("content", "አማርኛ"));
+  // const hits = await searcher.search(query);
+  const query = new PhraseQuery();
 
   // Verify that the search results are correct
   expect(hits.totalHits).toBeGreaterThan(0);
   for (const document of hits.documents) {
-    expect(document.getField("content").value).toContain("Test");
+    expect(document.getField("content").value).toContain("አማርኛ");
   }
 },10000);

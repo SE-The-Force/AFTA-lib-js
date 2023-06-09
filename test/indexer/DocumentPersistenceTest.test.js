@@ -26,7 +26,6 @@ describe("SQLiteDatabase", function () {
     }
     db = new SQLiteDatabase(dbName);
     await db.connect();
-    await db.createTables();
   });
 
   it("should save and retrieve documents correctly", async function () {

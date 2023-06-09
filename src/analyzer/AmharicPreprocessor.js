@@ -1,5 +1,13 @@
-
+/**
+ * Class representing an Amharic preprocessor.
+ * @class
+ */
 export default class AmharicPreprocessor {
+  /**
+   * Remove punctuation marks from the text.
+   * @param {string} text - The input text.
+   * @returns {string} The text with punctuation marks removed.
+   */
   static removePunctuation(text) {
     const punctuations = ['!', '@', '#', '\\$', '%', '\\^', '&', '\\*', '\\(', '\\)', '\\[', '\\]', '\\{', '\\}', ';', ':', '\\.', ',', '<', '>', '\\?', '/', '\\|', '~', '=', '\\+', '«', '»', '“', '”', '›', '’', '‘', "'", '\\"', '፡', '።', '፤', '፥', '፦', '፧', '፨', '…','፣', '-'];
 
@@ -8,17 +16,32 @@ export default class AmharicPreprocessor {
     return result;
   }
 
+  /**
+   * Remove non-Amharic characters from the text.
+   * @param {string} text - The input text.
+   * @returns {string} The text with non-Amharic characters removed.
+   */
   static removeNonAmharicChars(text) {
     const cleanedText = text.replace(/[a-zA-Z0-9]/g, "");
     return this.removeExtraSpaces(cleanedText);
   }
 
+  /**
+   * Remove extra spaces from the text.
+   * @param {string} text - The input text.
+   * @returns {string} The text with extra spaces removed.
+   */
   static removeExtraSpaces(text) {
     const cleanedText = text.replace(/\s+/g, " ").trim();
     return cleanedText;
   }
 
-    static removeStopWords(text) {
+  /**
+   * Remove stop words from the text.
+   * @param {string} text - The input text.
+   * @returns {string} The text with stop words removed.
+   */
+  static removeStopWords(text) {
       const stopwords = [
         "ህ-ን", "እንደ", "የ", "አል", "ው", "ኡ", "በ", "ተ", "ለ", "ን", "ኦች", "ኧ", "ና", "ከ", "እን", "አንድ", "አይ", "አዎ",
           "አቸው", "ት", "መ", "አ", "አት", "ዎች", "ም", "አስ", "ኡት", "ላ", "ይ", "ማ", "ያ", "አ", "ቶ", "እንዲ", 
@@ -36,6 +59,11 @@ export default class AmharicPreprocessor {
       return this.removeExtraSpaces(cleanedText);
     }
 
+    /**
+   * Normalize the text by applying character substitutions.
+   * @param {string} norm - The normalized text.
+   * @returns {string} The text with character substitutions applied.
+   */
   static normalize(norm) {
     const substitutions = [
       ["ሀ", "ሃ"], ["ሐ", "ሃ"], ["ሓ", "ሃ"], ["ኅ", "ሃ"], ["ኻ", "ሃ"], ["ኃ", "ሃ"], ["ዅ", "ሁ"], ["ሗ", "ኋ"], ["ኁ", "ሁ"], ["ኂ", "ሂ"],

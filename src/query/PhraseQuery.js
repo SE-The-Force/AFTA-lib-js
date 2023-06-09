@@ -1,20 +1,40 @@
 import Query from "./Query";
 import Hits from "../hits/Hits";
 
+/**
+ * Class representing a Phrase Query.
+ * @extends Query
+ */
 export default class PhraseQuery extends Query {
+  /**
+   * Create a Phrase Query.
+   * @constructor
+   * @param {string} field - The field to search in.
+   * @param {string} phrase - The phrase to search for.
+   */
   constructor(field, phrase) {
     super();
     this.field = field;
     this.phrase = phrase;
   }
 
-  async search(indexer) {
-    const tokens = this.phrase.split(" ");
+  /**
+   * Search the index using the Phrase query.
+   * @param {Indexer} indexer - The indexer instance.
+   * @returns {Promise<Hits>} A promise that resolves with the search hits.
+   */
+  async search(indexer, analyzer) {
+    const tokens = await analyzer.analyze(this.phrase);
     const hits = [];
-    const documentIds = await indexer.database.search(this.phrase);
+    const documentIds = [];
+    for(let token of tokens){
+      const {ids} = await indexer.database.search(token);
+      documentIds.push(...ids);
+    }
     const documents = await Promise.all(
       documentIds.map((id) => indexer.getDocument(id))
     );
+
     for (const doc of documents) {
       const positions = Object.entries(doc.fields)
         .filter(([key]) => key === this.field)
