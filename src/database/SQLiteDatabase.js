@@ -91,6 +91,23 @@ constructor(databaseName) {
       });
   }
 
+  async getNumDocsTokenBelongsTo(token) {
+    return new Promise((resolve, reject) => {
+        this.db.get(
+            "SELECT COUNT(DISTINCT doc_id) as num_docs FROM index_table WHERE token = ?",
+            [token],
+            (err, row) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(row.num_docs);
+                }
+            }
+        );
+    });
+}
+
+
   async insert(token, docId, position, frequency) {
     return new Promise((resolve, reject) => {
       const stmt = this.db.prepare(
