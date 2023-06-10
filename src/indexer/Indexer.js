@@ -27,6 +27,13 @@ export default class Indexer {
     await this.index(document);
   }
 
+  async addAllDocument(documents) {
+    for(const document of documents){
+      this.documentCache.put(document.id, document);
+    }
+    await this.indexAll(documents);
+  }
+
   /**
    * Get a document from the index by its ID.
    * @param {string} id - The ID of the document to retrieve.
@@ -72,6 +79,7 @@ export default class Indexer {
         }else{
           tokens = field.value.split(" ");
         }
+
         // Count the frequency of each token
         let tokenFreq = {};
         for (const token of tokens) {
@@ -87,5 +95,37 @@ export default class Indexer {
       }
     }
     await this.database.saveDocument(document);
+  }
+
+  async indexAll(documents) {
+    const tuples = [];
+    for(const document of documents){
+      for (const field of document.fields) {
+        if (field.isIndexible) {
+          let tokens = [];
+          if(field.isAnalyzed){
+            tokens = await this.analyzer.analyze(field.value);
+          }else{
+            tokens = field.value.split(" ");
+          }
+
+          // Count the frequency of each token
+          let tokenFreq = {};
+          for (const token of tokens) {
+            if (!tokenFreq[token]) {
+              tokenFreq[token] = 0;
+            }
+            tokenFreq[token]++;
+          }
+          // Store tokens and their frequencies to the database
+          for (const [position, token] of tokens.entries()) {
+            tuples.push([token, document.id, position, tokenFreq[token]])
+          }
+        }
+      }
+    }
+
+    await this.database.insertAll(tuples)
+    await this.database.saveAllDocuments(documents);
   }
 }

@@ -45,7 +45,7 @@ export default class Analyzer {
    */
   async analyze(text) {
     const preprocessedText = await this.preprocess(text);
-    const tokens = Analyzer.tokens(preprocessedText);
+    const tokens = await Analyzer.tokens(preprocessedText);
     try {
       const response = await axios.post(this.analyzerUrl, {
         words: tokens,

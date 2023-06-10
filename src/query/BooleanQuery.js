@@ -88,18 +88,6 @@ export default class BooleanQuery extends Query {
             if (hits.scores[docId]) {
               combinedScores[docId] = (combinedScores[docId] || 0) + hits.scores[docId];
             }
-            break;
-          case "NOT":
-            if (hits === hitsList[0]) {
-              if (hits.scores[docId]) {
-                combinedScores[docId] = hits.scores[docId];
-              }
-            } else {
-              if (hits.scores[docId]) {
-                combinedScores[docId] -= hits.scores[docId];
-              }
-            }
-            break;
         }
       }
     }

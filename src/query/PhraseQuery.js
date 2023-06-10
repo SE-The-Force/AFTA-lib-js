@@ -53,6 +53,7 @@ export default class PhraseQuery extends Query {
     }
 
     let ts = tokens.slice(1);
+    let score = 0;
     for(const docId of docIdsSet){
       let first = docId_token_position[docId][tokens[0]]
       let found = true;
@@ -73,6 +74,20 @@ export default class PhraseQuery extends Query {
       }
       if(found){
         hits.push(await indexer.getDocument(docId));
+      }
+    }
+    let word = "";
+    for(const token in tokens){
+      word += token + " "
+    }
+    word.trim()
+    
+    for(const doc in hits.documents){
+      for(const f in doc.fields){
+        const s = f.value;
+        const regx = `/${word}/g`
+        const matches = s.matchAll(regx)
+        const l = matches.length
       }
     }
 

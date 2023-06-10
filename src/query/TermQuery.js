@@ -25,9 +25,7 @@ export default class TermQuery {
         const term = analyzedTerms && analyzedTerms[0];
         const doc_freqs = await indexer.database.getNumDocsTokenBelongsTo(term);
         const {ids, frequencies} = await indexer.database.search(term);
-        // const documents = await Promise.all(
-        //     ids.map((id) => indexer.getDocument(id))
-        // );
+
         const documents = await indexer.getDocuments(ids);
         const filteredDocuments = documents.filter((doc) => doc !== null);
         // Compute tf-idf scores for each document

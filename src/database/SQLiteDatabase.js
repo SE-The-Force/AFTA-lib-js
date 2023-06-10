@@ -2,6 +2,7 @@ const sqlite3 = require("sqlite3").verbose();
 import IDatabase from "./IDatabase";
 import Document from "../document/Document";
 import Field from "../field/Field";
+const fs = require('fs');
 
 export default class SQLiteDatabase extends IDatabase {
 constructor(databaseName) {
@@ -124,7 +125,36 @@ constructor(databaseName) {
     });
   }
 
+  async insertAll(data) {
+    console.log("insertAll", data);
+    return new Promise((resolve, reject) => {
+      this.db.serialize(() => {
+        this.db.run('BEGIN TRANSACTION', (err) => {
+          if (err) reject("Error beginning the transaction: " + err.message);
+        });
 
+        let stmt = this.db.prepare('INSERT INTO index_table (token, doc_id, position, frequency) VALUES (?, ?, ?, ?)');
+
+        data.forEach((row) => {
+          stmt.run(row, (err) => {
+            if (err) reject("Error running statement: " + err.message);
+          });
+        });
+
+        stmt.finalize((err) => {
+          if (err) reject("Error finalizing the statement: " + err.message);
+        });
+
+        this.db.run('COMMIT', (err) => {
+          if (err){ reject("Error committing the transaction: " + err.message);}else{
+            resolve();
+          }
+          
+        });
+
+      });
+    });
+  }
 
   async search(token) {
       return new Promise((resolve, reject) => {
@@ -212,6 +242,57 @@ constructor(databaseName) {
     });
   }
 
+
+  async saveAllDocuments(documents) {
+    return new Promise((resolve, reject) => {
+      this.db.serialize(() => {
+        this.db.run("BEGIN TRANSACTION");
+
+        const stmt1 = this.db.prepare(
+          "INSERT OR REPLACE INTO documents_table (doc_id) VALUES (?)"
+        );
+
+        const stmt2 = this.db.prepare(
+          "INSERT INTO fields_table (key, value, analyzed_value, is_analyzed, is_indexible, is_stored, doc_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
+        );
+
+        for (let document of documents) {
+          stmt1.run(document.id, (err) => {
+            if (err) {
+              this.db.run("ROLLBACK");
+              reject(err);
+              return;
+            }
+          });
+
+          for (let field of document.fields) {
+            stmt2.run(
+              field.key,
+              field.value,
+              field.analyzedValue,
+              field.isAnalyzed ? 1 : 0,
+              field.isIndexible ? 1 : 0,
+              field.isStored ? 1 : 0,
+              document.id
+            );
+          }
+        }
+
+        stmt1.finalize();
+        stmt2.finalize();
+
+        this.db.run("COMMIT", (err) => {
+          if (err) {
+            this.db.run("ROLLBACK");
+            reject(err);
+            return;
+          }
+          resolve();
+        });
+      });
+    });
+  }
+
   async getDocument(id) {
     return new Promise((resolve, reject) => {
       this.db.all(
@@ -279,4 +360,3 @@ constructor(databaseName) {
   }
 }
 
-module.exports = SQLiteDatabase;
