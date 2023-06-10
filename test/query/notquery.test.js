@@ -61,7 +61,7 @@ describe("NotQuery", () => {
         const hits1 = await query1.search(indexer, analyzer);
         const hits2 = await query2.search(indexer, analyzer);
         
-        
+          
         expect(hits1.totalHits).toEqual(0);
         expect(hits2.totalHits).toBeGreaterThan(0)
     },30000);

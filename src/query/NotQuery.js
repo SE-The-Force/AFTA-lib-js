@@ -1,7 +1,6 @@
 import Query from "./Query";
 import Hits from "../hits/Hits";
 
-
 /**
  * Class representing a Not Query.
  * @extends Query
