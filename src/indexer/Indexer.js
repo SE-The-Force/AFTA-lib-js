@@ -40,6 +40,16 @@ export default class Indexer {
     return res;
   }
 
+  async getDocuments(ids){
+    const res = await this.database.getDocuments(ids);
+    return res;
+  }
+
+  async getDocumentsWithoutToken(token){
+    const res = await this.database.getDocumentsWithoutToken(token);
+    return res;
+  }
+
   /**
    * Get the total number of documents in the index.
    * @returns {Promise<number>} A promise that resolves with the total number of documents.

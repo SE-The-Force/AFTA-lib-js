@@ -148,10 +148,12 @@ constructor(databaseName) {
   async getDocumentsWithoutToken(token) {
       return new Promise((resolve, reject) => {
           this.db.all(
-              `SELECT DISTINCT documents_table.* 
-              FROM documents_table 
-              LEFT JOIN index_table ON documents_table.doc_id = index_table.doc_id 
-              WHERE index_table.token != ? OR index_table.token IS NULL`,
+              `SELECT * FROM documents_table 
+         WHERE NOT EXISTS (
+             SELECT 1 FROM index_table 
+             WHERE documents_table.doc_id = index_table.doc_id 
+             AND index_table.token = ?
+         )`,
               [token],
               async (err, rows) => {
                   if (err) {

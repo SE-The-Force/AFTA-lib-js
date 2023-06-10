@@ -23,7 +23,7 @@ export default class TermQuery {
     async search(indexer, analyzer) {
         const analyzedTerms = await analyzer.analyze(this.term.text);
         const term = analyzedTerms && analyzedTerms[0];
-        const doc_freqs = await index.database.getNumDocsTokenBelongsTo(token);
+        const doc_freqs = await indexer.database.getNumDocsTokenBelongsTo(term);
         const {ids, frequencies} = await indexer.database.search(term);
         // const documents = await Promise.all(
         //     ids.map((id) => indexer.getDocument(id))

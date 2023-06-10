@@ -81,7 +81,7 @@ describe("SQLiteDatabase", function () {
 
     assert.deepStrictEqual(
         JSON.stringify(searchResults), 
-        JSON.stringify({ ids: ["doc4"], frequencies: [null], doc_freqs: [null] })
+        JSON.stringify({ ids: ["doc4"], frequencies: [null], positions: [0] })
     );
   });
 
