@@ -26,26 +26,44 @@ export default class BooleanQuery extends Query {
    */
   async search(indexer, analyzer) {
     const hitsList = await Promise.all(this.queries.map((query) => query.search(indexer, analyzer)));
-    const documentLists = hitsList.map((hits) => hits.documents);
-    let documents;
+    if(hitsList.length === 0){
+      return new Hits(0, []);
+    }
 
+    let documents = [];
     switch (this.operator) {
       case "AND":
-        documents = documentLists.reduce((acc, list) =>
-          acc.filter((doc) => list.includes(doc))
-        );
-        break;
+          let commonIds = new Set(hitsList[0].documents.map(doc => doc.id));
+          for(let i = 1; i < hitsList.length; i++) {
+              let currentIds = new Set(hitsList[i].documents.map(doc => doc.id));
+              commonIds = new Set([...commonIds].filter(id => currentIds.has(id)));
+          }
+
+          let commonDocuments = new Map();
+          for(let hit of hitsList) {
+              for(let doc of hit.documents) {
+                  if(commonIds.has(doc.id)) {
+                      commonDocuments.set(doc.id, doc);
+                  }
+              }
+          }
+
+          documents = Array.from(commonDocuments.values());
+          break;
       case "OR":
-        documents = [...new Set(documentLists.flat())];
-        break;
-      case "NOT":
-        documents = documentLists[0].filter(
-          (doc) => !documentLists.slice(1).flat().includes(doc)
-        );
-        break;
+          let allDocuments = new Map();
+          for(let hit of hitsList) {
+              for(let doc of hit.documents) {
+                  allDocuments.set(doc.id, doc);
+              }
+          }
+
+          documents = Array.from(allDocuments.values());
+          break;
       default:
-        throw new Error(`Invalid operator: ${this.operator}`);
+          throw new Error(`Invalid operator: ${this.operator}`);
     }
+
 
     let scores = this.combineScores(hitsList, documents, this.operator);
     return new Hits(documents.length, documents, scores);
@@ -70,18 +88,6 @@ export default class BooleanQuery extends Query {
             if (hits.scores[docId]) {
               combinedScores[docId] = (combinedScores[docId] || 0) + hits.scores[docId];
             }
-            break;
-          case "NOT":
-            if (hits === hitsList[0]) {
-              if (hits.scores[docId]) {
-                combinedScores[docId] = hits.scores[docId];
-              }
-            } else {
-              if (hits.scores[docId]) {
-                combinedScores[docId] -= hits.scores[docId];
-              }
-            }
-            break;
         }
       }
     }

@@ -2,6 +2,7 @@ const sqlite3 = require("sqlite3").verbose();
 import IDatabase from "./IDatabase";
 import Document from "../document/Document";
 import Field from "../field/Field";
+const fs = require('fs');
 
 export default class SQLiteDatabase extends IDatabase {
 constructor(databaseName) {
@@ -43,8 +44,7 @@ constructor(databaseName) {
             token TEXT, 
             doc_id TEXT, 
             position INTEGER,
-            frequency INTEGER,
-            doc_freq INTEGER)`,
+            frequency INTEGER)`,
           (err) => {
             if (err) reject(err);
           }
@@ -76,21 +76,38 @@ constructor(databaseName) {
     });
   }
 
-async getTotalDocuments() {
+  async getTotalDocuments() {
+      return new Promise((resolve, reject) => {
+          this.db.get(
+              "SELECT COUNT(DISTINCT doc_id) as total FROM index_table",
+              [],
+              (err, row) => {
+                  if (err) {
+                      reject(err);
+                  } else {
+                      resolve(row.total);
+                  }
+              }
+          );
+      });
+  }
+
+  async getNumDocsTokenBelongsTo(token) {
     return new Promise((resolve, reject) => {
         this.db.get(
-            "SELECT COUNT(DISTINCT doc_id) as total FROM index_table",
-            [],
+            "SELECT COUNT(DISTINCT doc_id) as num_docs FROM index_table WHERE token = ?",
+            [token],
             (err, row) => {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(row.total);
+                    resolve(row.num_docs);
                 }
             }
         );
     });
 }
+
 
   async insert(token, docId, position, frequency) {
     return new Promise((resolve, reject) => {
@@ -108,28 +125,84 @@ async getTotalDocuments() {
     });
   }
 
-
-
-search(token) {
+  async insertAll(data) {
+    console.log("insertAll", data);
     return new Promise((resolve, reject) => {
-        this.db.all(
-            "SELECT doc_id, frequency, doc_freq FROM index_table WHERE token = ?",
-            [token],
-            (err, rows) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    const ids = rows.map((row) => row.doc_id);
-                    const frequencies = rows.map((row) => row.frequency);
-                    const doc_freqs = rows.map((row) => row.doc_freq);
-                    resolve({ids, frequencies, doc_freqs});
-                }
-            }
-        );
-    });
-}
+      this.db.serialize(() => {
+        this.db.run('BEGIN TRANSACTION', (err) => {
+          if (err) reject("Error beginning the transaction: " + err.message);
+        });
 
-  saveDocument(document) {
+        let stmt = this.db.prepare('INSERT INTO index_table (token, doc_id, position, frequency) VALUES (?, ?, ?, ?)');
+
+        data.forEach((row) => {
+          stmt.run(row, (err) => {
+            if (err) reject("Error running statement: " + err.message);
+          });
+        });
+
+        stmt.finalize((err) => {
+          if (err) reject("Error finalizing the statement: " + err.message);
+        });
+
+        this.db.run('COMMIT', (err) => {
+          if (err){ reject("Error committing the transaction: " + err.message);}else{
+            resolve();
+          }
+          
+        });
+
+      });
+    });
+  }
+
+  async search(token) {
+      return new Promise((resolve, reject) => {
+          this.db.all(
+              "SELECT doc_id, frequency, position FROM index_table WHERE token = ?",
+              [token],
+              (err, rows) => {
+                  if (err) {
+                      reject(err);
+                  } else {
+                      const ids = rows.map((row) => row.doc_id);
+                      const frequencies = rows.map((row) => row.frequency);
+                      const positions = rows.map((row) => row.position);
+                      resolve({ids, frequencies, positions});
+                  }
+              }
+          );
+      });
+  }
+
+  async getDocumentsWithoutToken(token) {
+      return new Promise((resolve, reject) => {
+          this.db.all(
+              `SELECT * FROM documents_table 
+         WHERE NOT EXISTS (
+             SELECT 1 FROM index_table 
+             WHERE documents_table.doc_id = index_table.doc_id 
+             AND index_table.token = ?
+         )`,
+              [token],
+              async (err, rows) => {
+                  if (err) {
+                      reject(err);
+                  } else {
+                      let documents = [];
+                      for (let row of rows) {
+                          let document = await this.getDocument(row.doc_id);
+                          documents.push(document);
+                      }
+                      resolve(documents);
+                  }
+              }
+          );
+      });
+  }
+
+
+  async saveDocument(document) {
     return new Promise((resolve, reject) => {
       this.db.serialize(() => {
         const stmt1 = this.db.prepare(
@@ -169,6 +242,57 @@ search(token) {
     });
   }
 
+
+  async saveAllDocuments(documents) {
+    return new Promise((resolve, reject) => {
+      this.db.serialize(() => {
+        this.db.run("BEGIN TRANSACTION");
+
+        const stmt1 = this.db.prepare(
+          "INSERT OR REPLACE INTO documents_table (doc_id) VALUES (?)"
+        );
+
+        const stmt2 = this.db.prepare(
+          "INSERT INTO fields_table (key, value, analyzed_value, is_analyzed, is_indexible, is_stored, doc_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
+        );
+
+        for (let document of documents) {
+          stmt1.run(document.id, (err) => {
+            if (err) {
+              this.db.run("ROLLBACK");
+              reject(err);
+              return;
+            }
+          });
+
+          for (let field of document.fields) {
+            stmt2.run(
+              field.key,
+              field.value,
+              field.analyzedValue,
+              field.isAnalyzed ? 1 : 0,
+              field.isIndexible ? 1 : 0,
+              field.isStored ? 1 : 0,
+              document.id
+            );
+          }
+        }
+
+        stmt1.finalize();
+        stmt2.finalize();
+
+        this.db.run("COMMIT", (err) => {
+          if (err) {
+            this.db.run("ROLLBACK");
+            reject(err);
+            return;
+          }
+          resolve();
+        });
+      });
+    });
+  }
+
   async getDocument(id) {
     return new Promise((resolve, reject) => {
       this.db.all(
@@ -198,6 +322,41 @@ search(token) {
       );
     });
   }
+
+  async getDocuments(ids) {
+    return new Promise((resolve, reject) => {
+      const idString = ids.map(id => `'${id}'`).join(",");
+      this.db.all(
+        `SELECT * FROM documents_table 
+        INNER JOIN fields_table ON documents_table.doc_id = fields_table.doc_id 
+        WHERE documents_table.doc_id IN (${idString})`,
+        [],
+        (err, rows) => {
+          if (err) {
+            reject(err);
+          } else {
+            // Group rows by document id
+            const docs = {};
+            for (let row of rows) {
+              if (!docs[row.doc_id]) {
+                docs[row.doc_id] = new Document(row.doc_id);
+              }
+              let field = new Field(
+                row.key,
+                row.value,
+                row.analyzed_value,
+                !!row.is_analyzed,
+                !!row.is_indexible,
+                !!row.is_stored
+              );
+              docs[row.doc_id].add(field);
+            }
+            // Convert docs object to array
+            resolve(Object.values(docs));
+          }
+        }
+      );
+    });
+  }
 }
 
-module.exports = SQLiteDatabase;

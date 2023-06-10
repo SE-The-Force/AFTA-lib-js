@@ -23,16 +23,16 @@ export default class TermQuery {
     async search(indexer, analyzer) {
         const analyzedTerms = await analyzer.analyze(this.term.text);
         const term = analyzedTerms && analyzedTerms[0];
-        const {ids, frequencies, doc_freqs} = await indexer.database.search(term);
-        const documents = await Promise.all(
-            ids.map((id) => indexer.getDocument(id))
-        );
+        const doc_freqs = await indexer.database.getNumDocsTokenBelongsTo(term);
+        const {ids, frequencies} = await indexer.database.search(term);
+
+        const documents = await indexer.getDocuments(ids);
         const filteredDocuments = documents.filter((doc) => doc !== null);
         // Compute tf-idf scores for each document
         const tf_idfs = {};
         const totalDocs = await indexer.getTotalDocuments();
         frequencies.forEach((tf, index) => {
-            const idf = Math.log(1 + ( totalDocs / (1 + doc_freqs[index])));
+            const idf = Math.log(1 + ( totalDocs / (1 + doc_freqs)));
             tf_idfs[ids[index]] = tf * idf;
         });
         // Sort documents based on tf-idf scores

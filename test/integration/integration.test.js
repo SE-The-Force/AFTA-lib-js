@@ -8,7 +8,7 @@ import Hits from "../../src/hits/Hits";
 import PdfParser from "../../src/parser/pdf_parser/PdfParser";
 import Term from "../../src/term/Term";
 import TermQuery from "../../src/query/TermQuery";
-import { PhraseQuery } from "../../src";
+import { BooleanQuery, PhraseQuery } from "../../src";
 
 test("Integration test: parse PDF file, create documents, analyze, index and search", async () => {
   // Set up the components of your system
@@ -19,7 +19,7 @@ test("Integration test: parse PDF file, create documents, analyze, index and sea
   const searcher = new IndexSearcher(indexer, analyzer);
 
   // Parse a PDF file using the PdfParser class
-  const pdfParser = new PdfParser("./test/pdf_parser/file2.pdf");
+  const pdfParser = new PdfParser("./test/pdf_parser/file4.pdf");
   const parsedData = await pdfParser.parse();
   
   // Create a document for each page of the PDF file
@@ -59,13 +59,32 @@ test("Integration test: parse PDF file, create documents, analyze, index and sea
 
   }
   // Search the index for a specific term
-  const tq = new TermQuery(new Term("content", "አማርኛ"));
-  // const hits = await searcher.search(query);
-  const query = new PhraseQuery();
+  const query = new TermQuery(new Term("content", "ዘመን"));
+  const query2 = new TermQuery(new Term("content", "ኢትዮጵያ"))
+  const boolean = new BooleanQuery([query, query2], "AND");
+  const boolean2 = new BooleanQuery([query, query2], "OR");
+  const phrase = new PhraseQuery("ኢትዮጵያ እና ዘመን");
+  const phrase2 = new PhraseQuery("ዘመን ኢትዮጵያ");
 
-  // Verify that the search results are correct
+  const hits = await searcher.search(query);
+  const hits2 = await searcher.search(boolean);
+  const hits3 = await searcher.search(boolean2);
+  const hits4 = await searcher.search(phrase);
+  const hits5 = await searcher.search(phrase2);
+
   expect(hits.totalHits).toBeGreaterThan(0);
-  for (const document of hits.documents) {
-    expect(document.getField("content").value).toContain("አማርኛ");
-  }
-},10000);
+  expect(hits.documents[0].id).toEqual("./test/pdf_parser/file4.pdf-1")
+
+  expect(hits2.totalHits).toBeGreaterThan(0);
+  expect(hits2.documents[0].id).toEqual("./test/pdf_parser/file4.pdf-1")
+
+  expect(hits3.totalHits).toBeGreaterThan(0);
+  expect(hits3.documents[0].id).toEqual("./test/pdf_parser/file4.pdf-1")
+
+  expect(hits4.totalHits).toBeGreaterThan(0);
+  expect(hits4.documents[0].id).toEqual("./test/pdf_parser/file4.pdf-1")
+  
+  expect(hits5.totalHits).toEqual(0);
+  expect(hits5.documents).toEqual([])
+
+},60000);

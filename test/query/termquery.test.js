@@ -10,20 +10,24 @@ describe("TermQuery", () => {
         const doc2 = { id: 2 };
         const indexer = {
             getDocument: jest.fn((id) => (id === 1 ? doc1 : doc2)),
+            getDocuments: jest.fn((ids) => ids.map((id)=> indexer.getDocument(id))),
             database: {
                 search: jest.fn(() => ({
                     ids: [1, 2],
                     frequencies: [2, 1],
-                    doc_freqs: [1, 1]
+                    position: [0, 10]
                 })),
                 getTotalDocuments: jest.fn(() => 2),
+                getNumDocsTokenBelongsTo : jest.fn(()=>3),
+
             },
             getTotalDocuments: jest.fn(() => 2),
+            
         };
 
-            const analyzer = {
-      analyze:  jest.fn(() => ['text']),
-    };
+        const analyzer = {
+            analyze:  jest.fn(() => ['text']),
+        };
 
         const hits = await query.search(indexer, analyzer);
 
