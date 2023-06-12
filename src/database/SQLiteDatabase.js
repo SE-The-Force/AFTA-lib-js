@@ -126,7 +126,6 @@ constructor(databaseName) {
   }
 
   async insertAll(data) {
-    console.log("insertAll", data);
     return new Promise((resolve, reject) => {
       this.db.serialize(() => {
         this.db.run('BEGIN TRANSACTION', (err) => {

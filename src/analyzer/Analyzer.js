@@ -59,4 +59,37 @@ export default class Analyzer {
       return [];
     }
   }
+
+  async analyzeAll(texts) {
+    const preprocessedTexts = await Promise.all(texts.map(async text => {
+      const preprocessedText = await this.preprocess(text);
+      return Analyzer.tokens(preprocessedText);
+    }));
+
+    const allTokens = [].concat(...preprocessedTexts);
+    try {
+      const response = await axios.post(this.analyzerUrl, {
+        words: allTokens,
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      let rootWords = response.data.rootWords;
+      let analyzedTokens = [];
+      let i = 0;
+      
+      for (let textTokens of preprocessedTexts) {
+        let chunkSize = textTokens.length;
+        let chunk = rootWords.slice(i, i + chunkSize);
+        analyzedTokens.push(chunk);
+        i += chunkSize;
+      }
+
+      return analyzedTokens;
+    } catch (error) {
+      return texts.map(() => []);
+    }
+  }
 }

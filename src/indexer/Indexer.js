@@ -98,13 +98,26 @@ export default class Indexer {
   }
 
   async indexAll(documents) {
+    const fieldsToAnalyze = [];
+    for (const document of documents) {
+      for (const field of document.fields) {
+        if (field.isIndexible && field.isAnalyzed) {
+          fieldsToAnalyze.push(field.value);
+        }
+      }
+    }
+
+    const analyzedTokens = await this.analyzer.analyzeAll(fieldsToAnalyze);
+    let tokenIndex = 0;
+
     const tuples = [];
     for(const document of documents){
       for (const field of document.fields) {
         if (field.isIndexible) {
           let tokens = [];
           if(field.isAnalyzed){
-            tokens = await this.analyzer.analyze(field.value);
+            tokens = analyzedTokens[tokenIndex];
+            tokenIndex += 1;
           }else{
             tokens = field.value.split(" ");
           }
@@ -128,4 +141,37 @@ export default class Indexer {
     await this.database.insertAll(tuples)
     await this.database.saveAllDocuments(documents);
   }
+
+  // async indexAll(documents){
+  //   const tuples = [];
+  //   for(const document of documents){
+  //     for (const field of document.fields) {
+  //       if (field.isIndexible) {
+  //         let tokens = [];
+  //         if(field.isAnalyzed){
+  //           tokens = await this.analyzer.analyze(field.value);
+  //         }else{
+  //           tokens = field.value.split(" ");
+  //         }
+
+  //         // Count the frequency of each token
+  //         let tokenFreq = {};
+  //         for (const token of tokens) {
+  //           if (!tokenFreq[token]) {
+  //             tokenFreq[token] = 0;
+  //           }
+  //           tokenFreq[token]++;
+  //         }
+  //         // Store tokens and their frequencies to the database
+  //         for (const [position, token] of tokens.entries()) {
+  //           tuples.push([token, document.id, position, tokenFreq[token]])
+  //         }
+  //       }
+  //     }
+  //   }
+
+  //   await this.database.insertAll(tuples)
+  //   await this.database.saveAllDocuments(documents);
+  
+  // }
 }

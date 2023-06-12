@@ -1,4 +1,4 @@
-export { default as AnalyzerMock } from './analyzer/Analyzer.js';
+export { default as Analyzer } from './analyzer/Analyzer.js';
 export { default as Document } from './document/Document.js';
 export { default as Field } from './field/Field.js';
 export { default as SQLiteDatabase } from './database/SQLiteDatabase.js';

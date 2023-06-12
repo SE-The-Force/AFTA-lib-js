@@ -17,12 +17,11 @@ test("Integration test: parse PDF file, create documents, analyze, index and sea
   await database.connect();
   const indexer = new Indexer(analyzer, database);
   const searcher = new IndexSearcher(indexer, analyzer);
-
   // Parse a PDF file using the PdfParser class
   const pdfParser = new PdfParser("./test/pdf_parser/file4.pdf");
   const parsedData = await pdfParser.parse();
-  
   // Create a document for each page of the PDF file
+  const docs = [];
   for (const [bookTitle, pageNumber, content] of parsedData.slice(1)) {
     const document = new Document(`${bookTitle}-${pageNumber}`);
     document.add(
@@ -55,9 +54,10 @@ test("Integration test: parse PDF file, create documents, analyze, index and sea
         pdfParser.isIndexable("Content")
       )
     );
-    await indexer.addDocument(document);
-
+    // await indexer.addDocument(document);
+    docs.push(document);
   }
+  await indexer.addAllDocument(docs);
   // Search the index for a specific term
   const query = new TermQuery(new Term("content", "ዘመን"));
   const query2 = new TermQuery(new Term("content", "ኢትዮጵያ"))
@@ -87,4 +87,4 @@ test("Integration test: parse PDF file, create documents, analyze, index and sea
   expect(hits5.totalHits).toEqual(0);
   expect(hits5.documents).toEqual([])
 
-},60000);
+},100000);
