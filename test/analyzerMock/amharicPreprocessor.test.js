@@ -42,6 +42,13 @@ describe('AmharicPreprocessor', () => {
     {input: 'አዲስ 123 አበባ hello world', expected: 'አዲስ አበባ'}
   ];
 
+  const stemmerTestcases = [
+    {input: 'አዲስ', expected: 'አድስ'},
+    {input: 'ሀብታሞቹ', expected: 'ህብት'},
+    {input: 'ሀኪሞች', expected: 'ህክ'},
+    {input: 'ሀይማኖትሽ', expected: 'ህይምንት'},
+  ];
+
   normalizationTestcases.forEach(({ input, expected }) => {
     it(`should normalize "${input}" to "${expected}"`, () => {
       const result = AmharicPreprocessor.normalize(input);
@@ -73,6 +80,13 @@ describe('AmharicPreprocessor', () => {
   mixedCharsTestCases.forEach(({ input, expected }) => {
     it(`should remove mixed chars from "${input}" to "${expected}"`, () => {
       const result = AmharicPreprocessor.removeNonAmharicChars(input);
+      expect(result).toBe(expected);
+    });
+  });
+
+  stemmerTestcases.forEach(({ input, expected }) => {
+    it(`should stem "${input}" to "${expected}"`, () => {
+      const result = AmharicPreprocessor.stem(input);
       expect(result).toBe(expected);
     });
   });
