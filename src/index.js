@@ -11,3 +11,4 @@ export { default as TermQuery } from './query/TermQuery.js';
 export { default as PhraseQuery } from './query/PhraseQuery.js';
 export { default as BooleanQuery } from './query/BooleanQuery.js';
 export { default as NotQuery } from './query/NotQuery.js';
+export { default as BuilderQuery } from './query/BuilderQuery.js';

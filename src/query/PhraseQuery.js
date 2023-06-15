@@ -90,7 +90,10 @@ export default class PhraseQuery extends Query {
         const l = matches.length
       }
     }
-
-    return new Hits(hits.length, hits);
+    const scores = {}
+    for(let doc in hits.documents){
+      socres[doc.id] = 0
+    }
+    return new Hits(hits.length, hits, scores);
   }
 }
